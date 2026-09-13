@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--paper:#f5f2ea;--card:#faf8f2;--ink:#282720;--meta:#6d685c;--line:rgba(40,39,32,.13);--accent:#3f7a5e;--serif:'Fraunces',Georgia,serif;--sans:'Inter',system-ui,sans-serif}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.68}.wrap{max-width:880px;margin:0 auto;padding:0 26px}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2,h3{font-family:var(--serif);margin:0;line-height:1.15}header{border-bottom:1px solid var(--line);background:rgba(245,242,234,.94);position:sticky;top:0}.bar{max-width:880px;margin:auto;padding:15px 26px;display:flex;justify-content:space-between;gap:16px}.brand{font-family:var(--serif);font-weight:600}.back{font-size:.92rem;font-weight:500}main{padding:48px 0 80px}.eyebrow{color:var(--meta);font-size:.82rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600}.title{font-size:clamp(2.1rem,6vw,3.3rem);margin-top:7px}.lead{color:var(--meta);max-width:65ch;font-size:1.03rem;margin:13px 0 0}.links{display:flex;gap:18px;flex-wrap:wrap;margin:22px 0 34px}.section{padding:25px 0;border-top:1px solid var(--line)}.section h2{font-size:1.55rem;margin-bottom:12px}.section p{max-width:74ch;margin:0 0 13px}.section ul{max-width:74ch;margin:8px 0 0;padding-left:22px}.section li{margin:7px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px}.demo{display:inline-flex;padding:11px 17px;border-radius:9px;background:var(--accent);color:white;font-weight:600}.demo:hover{color:white;text-decoration:none;filter:brightness(1.05)}footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--meta);font-size:.82rem;text-align:center}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.68}.wrap{max-width:880px;margin:0 auto;padding:0 26px}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2{font-family:var(--serif);margin:0;line-height:1.15}header{border-bottom:1px solid var(--line);background:rgba(245,242,234,.94);position:sticky;top:0}.bar{max-width:880px;margin:auto;padding:15px 26px;display:flex;justify-content:space-between;gap:16px}.brand{font-family:var(--serif);font-weight:600}.back{font-size:.92rem;font-weight:500}main{padding:48px 0 80px}.eyebrow{color:var(--meta);font-size:.82rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600}.title{font-size:clamp(2.1rem,6vw,3.3rem);margin-top:7px}.lead{color:var(--meta);max-width:65ch;font-size:1.03rem;margin:13px 0 0}.links{display:flex;gap:18px;flex-wrap:wrap;margin:22px 0 34px}.section{padding:25px 0;border-top:1px solid var(--line)}.section h2{font-size:1.55rem;margin-bottom:12px}.section p{max-width:74ch;margin:0 0 13px}.section ul{max-width:74ch;margin:8px 0 0;padding-left:22px}.section li{margin:7px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px}.demo{display:inline-flex;padding:11px 17px;border-radius:9px;background:var(--accent);color:white;font-weight:600}.demo:hover{color:white;text-decoration:none;filter:brightness(1.05)}footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--meta);font-size:.82rem;text-align:center}
 </style>
 </head>
 <body>
@@ -17,7 +17,7 @@
 <main class="wrap">
   <div class="eyebrow">CS 2340 · Georgia Tech</div>
   <h1 class="title">GT Movies Store</h1>
-  <p class="lead">A Django movie-store project built for CS 2340 with movie browsing, accounts, cart and checkout, orders, reviews, and a deployed web version.</p>
+  <p class="lead">A Django movie-store project for CS 2340 with movie browsing, accounts, cart and checkout, orders, reviews, and a deployed web version.</p>
   <div class="links">
     <a href="https://ishaangatech.pythonanywhere.com" target="_blank" rel="noopener">Live application</a>
     <a href="https://github.gatech.edu/ichaturvedi8/gt-movies-store-project-1-2340" target="_blank" rel="noopener">Course repository</a>
@@ -25,29 +25,29 @@
 
   <section class="section">
     <h2>GT Movies Store description</h2>
-    <p>The site lets users browse and search movies, open a movie page for details, create an account, add movies to a cart, place orders, view order history, and write reviews.</p>
+    <p>The site lets users browse and search movies, view movie details, create an account, add movies to a cart, place orders, see past orders, and write reviews.</p>
     <div class="card">
       <ul>
-        <li><strong>Movies:</strong> browse, search by title, and view movie details.</li>
+        <li><strong>Movies:</strong> browse, search, and view details.</li>
         <li><strong>Accounts:</strong> register, log in, and log out.</li>
-        <li><strong>Cart and orders:</strong> add quantities, review the cart, purchase movies, and view previous orders.</li>
+        <li><strong>Cart and orders:</strong> add movies, choose quantities, check out, and view order history.</li>
         <li><strong>Reviews:</strong> create, edit, and delete your own reviews.</li>
-        <li><strong>Reporting:</strong> users can report another user's review, and reported reviews are hidden from the public movie page.</li>
-        <li><strong>Admin:</strong> the site administrator can manage application data through Django Admin.</li>
+        <li><strong>Reporting:</strong> report another user's review so it is hidden from the public page.</li>
+        <li><strong>Admin:</strong> manage site data through Django Admin.</li>
       </ul>
     </div>
   </section>
 
   <section class="section">
     <h2>Process description</h2>
-    <p>I mostly followed the step-by-step process in <em>Django 5 for the Impatient</em>. I built the project a section at a time, tested each feature locally, and fixed issues as they came up before moving on.</p>
-    <p>When I got stuck, I compared my code with the textbook, used Django's error messages to find the problem, and tested the page again. Most of the work was learning how the different parts of a Django project connect together and making sure each feature worked correctly.</p>
-    <p>I also added the review-reporting requirement and deployed the finished project to PythonAnywhere. Overall, the project helped me become more comfortable building, debugging, testing, and deploying a complete web application.</p>
+    <p>I mostly followed <em>Django 5 for the Impatient</em> step by step and built the project one feature at a time. After each part, I ran the site locally and checked that it worked before moving on.</p>
+    <p>When something broke, I used Django's error pages, compared my work with the textbook, and fixed the issue before continuing. I also added the review-reporting requirement and then deployed the finished site to PythonAnywhere.</p>
+    <p>Overall, this project gave me a much better feel for how a Django site comes together from start to finish and made me more comfortable debugging and deploying a web app.</p>
   </section>
 
   <section class="section">
     <h2>Video demonstration</h2>
-    <p>This video demonstrates the finished GT Movies Store and its main features.</p>
+    <p>This video shows the finished site and its main features.</p>
     <a class="demo" href="https://gtvault-my.sharepoint.com/:v:/g/personal/ichaturvedi8_gatech_edu/IQAk72nPPIqBT60Ff8u0OlABAbCxNfB8J8Td75U3ztlSu2c?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&amp;e=hRptgg" target="_blank" rel="noopener">Watch GT Movies Store demo</a>
   </section>
 </main>
