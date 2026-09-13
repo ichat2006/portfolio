@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GT Movies Store — Ishaan Chaturvedi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f5f2ea;--card:#faf8f2;--ink:#282720;--meta:#6d685c;--line:rgba(40,39,32,.13);--accent:#3f7a5e;--serif:'Fraunces',Georgia,serif;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.68}.wrap{max-width:880px;margin:0 auto;padding:0 26px}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2,h3{font-family:var(--serif);margin:0;line-height:1.15}header{border-bottom:1px solid var(--line);background:rgba(245,242,234,.94);position:sticky;top:0}.bar{max-width:880px;margin:auto;padding:15px 26px;display:flex;justify-content:space-between;gap:16px}.brand{font-family:var(--serif);font-weight:600}.back{font-size:.92rem;font-weight:500}main{padding:48px 0 80px}.eyebrow{color:var(--meta);font-size:.82rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600}.title{font-size:clamp(2.1rem,6vw,3.3rem);margin-top:7px}.lead{color:var(--meta);max-width:65ch;font-size:1.03rem;margin:13px 0 0}.links{display:flex;gap:18px;flex-wrap:wrap;margin:22px 0 34px}.section{padding:25px 0;border-top:1px solid var(--line)}.section h2{font-size:1.55rem;margin-bottom:12px}.section p{max-width:74ch;margin:0 0 13px}.section ul{max-width:74ch;margin:8px 0 0;padding-left:22px}.section li{margin:7px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px}.demo{display:inline-flex;padding:11px 17px;border-radius:9px;background:var(--accent);color:white;font-weight:600}.demo:hover{color:white;text-decoration:none;filter:brightness(1.05)}code{font-size:.9em}footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--meta);font-size:.82rem;text-align:center}
+</style>
+</head>
+<body>
+<header><div class="bar"><span class="brand">Ishaan Chaturvedi</span><a class="back" href="index.html">← Back to portfolio</a></div></header>
+<main class="wrap">
+  <div class="eyebrow">CS 2340 · Georgia Tech</div>
+  <h1 class="title">GT Movies Store</h1>
+  <p class="lead">A full-stack Django movie storefront built as my first CS 2340 project, combining movie browsing, accounts, shopping-cart and order workflows, reviews, administration, and a public PythonAnywhere deployment.</p>
+  <div class="links">
+    <a href="https://ishaangatech.pythonanywhere.com" target="_blank" rel="noopener">Live application</a>
+    <a href="https://github.gatech.edu/ichaturvedi8/gt-movies-store-project-1-2340" target="_blank" rel="noopener">Course repository</a>
+  </div>
+
+  <section class="section">
+    <h2>About me</h2>
+    <p>I'm Ishaan Chaturvedi, a Computer Science and Mathematics student at Georgia Tech. My broader interests are systems, robotics, machine learning, and full-stack software. This project gave me hands-on practice with the full lifecycle of a web application: data models, routing, templates, authentication, user-specific behavior, debugging, database migrations, and deployment.</p>
+  </section>
+
+  <section class="section">
+    <h2>GT Movies Store description</h2>
+    <p>The application is organized around the required user stories for a movie storefront. The Movies screen lists the available movies and includes title search so users can quickly find a specific movie. Each movie detail screen shows the movie's name, description, price, image, quantity selector, and existing reviews so a user has the information needed to decide whether to purchase it.</p>
+    <div class="card">
+      <ul>
+        <li><strong>Accounts:</strong> users can register, log in, log out, and access account-specific functionality.</li>
+        <li><strong>Movies and search:</strong> users can browse the movie catalog, search by title, and open a detailed movie page.</li>
+        <li><strong>Shopping cart:</strong> users can add one or more copies of a movie, review their cart, adjust what they plan to purchase, and proceed to checkout.</li>
+        <li><strong>Orders:</strong> authenticated users can complete purchases and view their order history.</li>
+        <li><strong>Reviews:</strong> authenticated users can create reviews and edit or delete reviews that they own.</li>
+        <li><strong>Reporting:</strong> authenticated users can report another user's inappropriate review. Reported reviews are filtered from the public movie page and remain available for administrative management.</li>
+        <li><strong>Administration:</strong> Django Admin provides management of application data such as users, movies, reviews, and orders.</li>
+        <li><strong>Responsive access:</strong> shared Bootstrap-based templates keep the main workflows usable at different browser sizes, and PythonAnywhere makes the application accessible over the web rather than only on localhost.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Process description</h2>
+    <p>I primarily followed the step-by-step process in <em>Django 5 for the Impatient</em> to build the core application. I worked through the project incrementally instead of trying to implement the entire site at once: I set up the Django project and apps, created models, connected URL patterns to views, built templates, added authentication, and then implemented the cart, checkout, order, and review workflows as I progressed through the textbook.</p>
+    <p>My usual development loop was to implement a small feature in PyCharm, run the site locally, test the specific page or action, and resolve the error before moving on. When I had questions or doubts, I compared my code with the textbook's structure and used Django's detailed development error pages to identify the failing file, template tag, URL, or line. This helped me work through issues involving static CSS/images, template block nesting, URL reversing, model migrations, and authenticated-user permissions.</p>
+    <p>For requirements beyond the basic textbook flow, I extended the existing Django design. The main example was inappropriate-review reporting: I added a reported state to the review model, created the report route/view, added a Report action for reviews written by other users, filtered reported reviews from public movie pages, and made the review state manageable through the administrative side. I tested this with multiple accounts so review owners retained edit/delete controls while another authenticated user could report the review.</p>
+    <p>Deployment was another major part of the process. I pushed updates with Git, updated the project on PythonAnywhere, ran migrations, checked the Django configuration, configured the hosted application, and reloaded it after changes. When the hosted site behaved differently from localhost, I used PythonAnywhere's error logs to trace settings, WSGI, and deployment problems. I then tested the final user flows on the deployed version rather than relying only on the local development server.</p>
+  </section>
+
+  <section class="section">
+    <h2>Video demonstration</h2>
+    <p>The demonstration video shows the finished GT Movies Store and walks through its main screens and features.</p>
+    <a class="demo" href="https://gtvault-my.sharepoint.com/:v:/g/personal/ichaturvedi8_gatech_edu/IQAk72nPPIqBT60Ff8u0OlABAbCxNfB8J8Td75U3ztlSu2c?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&amp;e=hRptgg" target="_blank" rel="noopener">Watch GT Movies Store demo</a>
+  </section>
+</main>
+<footer><div class="wrap">Ishaan Chaturvedi · GT Movies Store</div></footer>
+</body>
+</html>
