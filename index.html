@@ -219,8 +219,32 @@
 
     <div style="margin-top:22px">
 
-      <!-- MALD -->
+      <!-- GT Movies Store -->
       <article class="proj" style="padding-top:2px">
+        <h3>GT Movies Store — Django Web Application</h3>
+        <div class="stack">Python · Django 5 · SQLite · Bootstrap · Django Auth · Django Admin · PythonAnywhere</div>
+        <p class="desc">A full-stack movie storefront built for Georgia Tech CS 2340. Users can browse and search movies, create accounts, manage a session-backed cart, place orders, view purchase history, and create, edit, delete, or report movie reviews. The finished application is deployed publicly on PythonAnywhere.</p>
+        <div class="proj-links">
+          <a class="link" href="https://ishaangatech.pythonanywhere.com" target="_blank" rel="noopener"><svg class="ico"><use href="#i-folder"/></svg>Live demo</a>
+          <a class="link" href="https://github.gatech.edu/ichaturvedi8/gt-movies-store-project-1-2340" target="_blank" rel="noopener"><svg class="ico"><use href="#i-github"/></svg>Course repository</a>
+        </div>
+        <details class="more">
+          <summary><span class="chev">›</span>Technical debrief</summary>
+          <div class="debrief">
+            <span class="lead">Architecture</span>
+            <p>The application is split into Django apps for movies, accounts, and cart/order flows. Django models persist movies, reviews, orders, and order items in SQLite; authentication uses Django's built-in user system; the shopping cart is stored in the session so quantities survive navigation before checkout. Templates are rendered server-side and styled with Bootstrap for a responsive interface.</p>
+            <span class="lead">Core user flows</span>
+            <p>The project implements movie listing, title search, movie-detail pages, account registration and login, cart management, checkout, order history, and review CRUD. I added inappropriate-review reporting as an extension to the book project: a report action marks the review, public movie pages filter reported reviews out, and administrators can inspect or manage the flagged review through Django Admin.</p>
+            <span class="lead">Development process</span>
+            <p>I built and debugged the application incrementally from the Django models and URLs upward through templates and deployment. The most useful debugging work was tracing template-tag and URL-reversal errors, checking model migrations after schema changes, validating authentication-dependent UI behavior with multiple accounts, and reading PythonAnywhere WSGI/error logs when deployment behavior differed from localhost.</p>
+            <span class="lead">Deployment</span>
+            <p>The production copy runs on PythonAnywhere. Deployment required configuring <code>ALLOWED_HOSTS</code>, WSGI paths, database migrations, static assets, and then reloading the hosted application after each pushed update. I tested the final flows on the deployed site rather than relying only on the local development server.</p>
+          </div>
+        </details>
+      </article>
+
+      <!-- MALD -->
+      <article class="proj">
         <h3>MALD &amp; SWAD — AI Assistive Navigation</h3>
         <div class="stack">Python · YOLO · LiDAR · Jetson Nano · iOS (Swift / AVSpeechSynthesizer) · WebSocket</div>
         <p class="desc">An assistive navigation device that fuses LiDAR depth with real-time object detection into spoken guidance, delivered through a companion iOS app. The hard part was getting sensor fusion, threading, and networking to cooperate on constrained embedded hardware, fast enough to be genuinely useful in real time.</p>
