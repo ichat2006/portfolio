@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fusion in Motion — Ishaan Chaturvedi</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"><style>:root{--paper:#f5f2ea;--card:#faf8f2;--ink:#282720;--meta:#6d685c;--line:rgba(40,39,32,.13);--accent:#3f7a5e;--serif:'Fraunces',Georgia,serif;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.68}.wrap{max-width:880px;margin:0 auto;padding:0 26px}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2{font-family:var(--serif);margin:0;line-height:1.15}header{border-bottom:1px solid var(--line);background:rgba(245,242,234,.94);position:sticky;top:0;z-index:5}.bar{max-width:880px;margin:auto;padding:15px 26px;display:flex;justify-content:space-between;gap:16px}.brand{font-family:var(--serif);font-weight:600}.back{font-size:.92rem;font-weight:500}main{padding:48px 0 80px}.eyebrow{color:var(--meta);font-size:.82rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600}.title{font-size:clamp(2.1rem,6vw,3.3rem);margin-top:7px}.lead{color:var(--meta);max-width:68ch;font-size:1.03rem;margin:13px 0 0}.links{display:flex;gap:18px;flex-wrap:wrap;margin:22px 0 30px}.section{padding:25px 0;border-top:1px solid var(--line)}.section h2{font-size:1.5rem;margin-bottom:12px}.section p{max-width:74ch;margin:0 0 13px}.section ul{max-width:74ch;margin:8px 0 13px;padding-left:22px}.section li{margin:6px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 22px;margin:8px 0 6px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em;background:rgba(63,122,94,.08);padding:1px 5px;border-radius:4px}
+pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.84rem;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:12px 16px;overflow-x:auto;white-space:pre;max-width:100%;margin:6px 0 14px;line-height:1.55}
+table{border-collapse:collapse;width:100%;margin:8px 0 14px;font-size:.88rem;background:var(--card)}th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}th{background:rgba(63,122,94,.08);font-weight:600}
+.figure{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0 16px}.figure svg{width:100%;height:auto;display:block}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:6px 0 4px}.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}.stat b{display:block;font-family:var(--serif);font-size:1.45rem;color:var(--accent)}.stat span{font-size:.8rem;color:var(--meta)}
+footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--meta);font-size:.82rem;text-align:center}</style></head>
+<body><header><div class="bar"><span class="brand">Ishaan Chaturvedi</span><a class="back" href="index.html">← Back to portfolio</a></div></header>
+<main class="wrap"><div class="eyebrow">GT Cloud Robotics VIP · Rust · Sep 2026 – present</div><h1 class="title">Fusion in Motion</h1><p class="lead">Making a robot's GPS/IMU state estimator and object tracker degrade gracefully when the sensor stream stops being clean: overload, late data, and a 40-second GPS outage.</p>
+<div class="links"><a href="https://github.com/ichat2006/fusion-in-motion/tree/ishaan-sensor-pipeline" target="_blank" rel="noopener">Repository (branch ishaan-sensor-pipeline)</a></div>
+<div class="stats"><div class="stat"><b>9% / 8%</b><span>lower localization / tracking error under overload (3 seeds)</span></div><div class="stat"><b>3.5x</b><span>tracking-error bug traced to delivery-time stamping</span></div><div class="stat"><b>75.9%</b><span>lower return-window error after a 40 s outage</span></div><div class="stat"><b>~3,900</b><span>lines added on my branch, with tests</span></div></div>
+
+<section class="section">
+<h2>What I built, in one paragraph</h2>
+<p>Fusion in Motion is the GT Cloud Robotics VIP's Rust localization and tracking engine (PI: Ethan Boos): a GPS/IMU extended Kalman filter with IMU-bias estimation, plus camera/LiDAR multi-object tracking, driven by a seeded simulator and checked against regression baselines. My branch, <code>ishaan-sensor-pipeline</code>, is three commits and about 3,900 added lines across the estimator, a new pipeline module, tests, experiments, and docs. It answers one question: <strong>what should a robot's state estimator do when its sensor stream stops being clean?</strong> That covers three failure modes: more data than the worker can process, data that arrives late, and a sensor that disappears for 40 seconds and then comes back.</p>
+<div class="card"><ul>
+<li><strong>Sensors (simulated):</strong> IMU at 100 Hz, GPS at 2 Hz (0.25 m &#963;), camera at 10 Hz (bearing only), LiDAR at 5 Hz (range + bearing).</li>
+<li><strong>Two clocks on every packet:</strong> <code>measurement_time_ns</code> (when the sensor captured it) and <code>arrival_time_ns</code> (when the software got it). Most of the bugs below live in the gap between those two numbers.</li>
+<li><strong>What I added:</strong> a bounded sensor queue with 5 drop policies and per-sensor expiry, a GPS-health monitor, GPS reacquisition logic (variance ramp plus a drift-invariant consistency check), freshness diagnostics, end-to-end and unit tests, regression fixtures, a run-analysis script, and the experiment write-ups.</li>
+</ul></div>
+</section>
+
+<section class="section">
+<h2>1. Overload: a bounded queue that degrades on purpose</h2>
+<p>A real robot's compute can't always keep up with its sensors. I wrote <code>pipeline::replay</code>, a deterministic single-worker load model: every packet arrives at its timestamp, waits in a bounded FIFO, and costs a configurable service time per sensor type. When the queue is full, a policy decides who loses. Both the estimator and the tracker then consume only what was actually delivered, with delivery delays applied, so a policy's cost shows up in localization and tracking error rather than just in a drop counter.</p>
+<p>The five policies are <code>drop_newest</code>, <code>drop_oldest</code>, <code>keep_latest</code>, <code>prefer_navigation</code> (evict camera/LiDAR before IMU/GPS), and <code>balanced</code>. Balanced is the interesting one. It guarantees each class (navigation vs. perception) a minimum share of the queue:</p>
+<pre>min_class = min( max( ceil(C &#183; p / 100), C &#8805; 4 ? 2 : 1 ), floor(C / 2) )      // p = 25 by default
+max_class = C &#8722; min_class</pre>
+<p>On overflow, if the incoming packet's class is under its cap, the victim comes from the other class: specifically the most over-represented <em>sensor</em> in that class, and never one that would leave a sensor type with zero queued packets (when C &#8805; 4). If the other class is already at its floor, the incoming packet is dropped instead. If the incoming class is at its cap, it evicts the oldest queued packet from its own sensor (or its own class). FIFO order is preserved for everything that stays. Each sensor also gets an optional maximum queue wait, so a stale packet is expired rather than served late.</p>
+<table>
+<tr><th>3-seed sweep, 15 s overload case</th><th>balanced</th><th>drop_newest</th></tr>
+<tr><td>Ego localization RMSE (capacity 8)</td><td><strong>0.185 m</strong></td><td>0.204 m</td></tr>
+<tr><td>Track RMSE, estimated ego (capacity 8)</td><td><strong>0.240 m</strong></td><td>0.262 m</td></tr>
+<tr><td>Track RMSE, truth ego (capacity 8)</td><td><strong>0.026 m</strong></td><td>0.031 m</td></tr>
+<tr><td>Track RMSE, truth ego (capacity 32)</td><td><strong>0.026 m</strong></td><td>0.033 m (prefer_navigation: 0.087 m)</td></tr>
+<tr><td>What balanced gave up</td><td colspan="2">197 IMU packets per run at capacity 8; zero GPS, camera, or LiDAR</td></tr>
+</table>
+<p>That's a 9% localization and 8% tracking improvement from shedding the one stream that is most redundant at 100 Hz. The lesson I wrote into the docs: <code>prefer_navigation</code> sounds safe, but starving perception made tracking more than 3x worse than balanced at capacity 32.</p>
+</section>
+
+<section class="section">
+<h2>2. The 3.5x bug: late data stamped as new data</h2>
+<p>When I ran the queue against the GPS-recovery scenario, localization barely moved, but object-tracking error jumped from <strong>0.035 m to 0.123 m (3.5x)</strong>. The queue had dropped 748 of 6,000 IMU packets (12.5%) and no detections, so data loss wasn't the cause.</p>
+<p>The cause was time. A camera or LiDAR detection that waited in the queue was being handed to the tracker stamped with its <em>delivery</em> time. The tracker then predicted each object forward to the wrong instant before associating and updating, so every update applied an old observation as if it were current. For a target moving at speed <em>v</em> with queue delay <em>d</em>, that injects a position bias on the order of <em>v &#183; d</em> into every update. That is the classic out-of-sequence-measurement problem, and it is invisible in drop statistics.</p>
+<p>The engine already had a tracker timing-compensation option that keeps each detection's capture time, but it was off by default, so nothing had ever exercised it under queue delay. Turning it on returned track error to <strong>0.035 m</strong> with no false-track samples. I made it the default for the overload scenario and documented why the GPS-recovery experiment itself stays queue-free when isolating the filter. The general rule I took from it: <strong>a queue changes when data arrives, never when it happened</strong>, and every consumer must be explicit about which of the two clocks it is using.</p>
+</section>
+
+<section class="section">
+<h2>3. A 40-second GPS outage, and the gate that locks GPS out</h2>
+<p>The recovery challenge drives the vehicle through a left and then right turn with GPS absent from 10 s to 50 s, leaving 10 s to recover. During the outage the filter dead-reckons on biased IMU data (simulated accelerometer bias 0.025 m/s&#178;, gyro bias 0.003 rad/s), so position error grows to meters (outage-window RMSE 3.06 m, about 21.5x the continuous-GPS control).</p>
+<p><strong>The trap.</strong> The EKF rejects any GPS fix whose normalized innovation exceeds a 3-&#963; gate. If the filter's covariance grows more slowly than its true error during the outage, the very first fixes after the outage look like outliers and get rejected. Each rejection keeps the estimate un-corrected, so the next fix is rejected too. I wrote a unit test (<code>gps_return_can_be_gated_out_after_loss</code>) that reproduces exactly this: an accelerometer bias the basic filter doesn't model, 20 s without GPS, and the returning fix is rejected by the 3-&#963; gate.</p>
+<p><strong>The variance ramp.</strong> After a stale gap (no fix for 1.5 s), returning fixes are given inflated measurement noise <em>R&#8242; = s &#183; R</em>, where <em>s</em> decays quadratically from an initial multiplier to 1 over a ramp window:</p>
+<pre>s(t) = 1 + (s0 &#8722; 1) &#183; (1 &#8722; p)&#178;,     p = clamp((t &#8722; t_return) / T, 0, 1)</pre>
+<p>One correctness detail matters here. The inflated <em>R&#8242;</em> has to be used consistently in the innovation covariance, the Cholesky solve for the Kalman gain, and the Joseph-form covariance update (<em>P&#8314; = (I &#8722; KH) P (I &#8722; KH)&#7488; + K R&#8242; K&#7488;</em>), while the outlier gate still uses the receiver's nominal <em>R</em>. If you inflate <em>R</em> for the gain but leave the nominal value in the Joseph term, the filter reports less uncertainty than it actually has. I changed all three places together.</p>
+<p><strong>Tuning against a stated priority.</strong> The original ramp (1000x over 3 s) trades accuracy for smoothness: it shrinks the biggest correction jump but keeps the estimate wrong for longer. On the same seed, queue settings, and input stream:</p>
+<table>
+<tr><th>Recovery setting</th><th>Return RMSE (50&#8211;53 s)</th><th>Post-recovery RMSE</th><th>Largest return step</th><th>Final error</th></tr>
+<tr><td>1000x over 1 s (prior)</td><td>1.078 m</td><td>0.108 m</td><td>3.633 m</td><td>0.0300 m</td></tr>
+<tr><td>800x over 0.5 s</td><td>0.885 m</td><td>0.106 m</td><td>3.912 m</td><td>0.0303 m</td></tr>
+<tr><td><strong>1.5x over 0.5 s (chosen)</strong></td><td><strong>0.260 m</strong></td><td>0.104 m</td><td>5.776 m</td><td>0.0311 m</td></tr>
+<tr><td>Abrupt return (control)</td><td>0.252 m</td><td>0.103 m</td><td>5.777 m</td><td>0.0315 m</td></tr>
+</table>
+<p>The chosen setting cut return-window error <strong>75.9%</strong> versus the prior ramp and lands within 0.008 m of the abrupt control. I documented the cost too: it gives back the smaller correction jump. That's a deliberate trade for accuracy, and it's a one-seed result, so I labeled it that way.</p>
+</section>
+
+<section class="section">
+<h2>4. The hard part: a drift-invariant check for returning GPS</h2>
+<p>A variance ramp treats every returning fix the same. What you actually want is to trust a good fix immediately and stay skeptical of a bad one (multipath, a jump, a spoofed position). The obvious test, "is the fix close to my estimate?", is useless right after an outage, because the estimate has drifted by meters. A perfectly good fix looks just as far off as a bad one.</p>
+<p>My adaptive check compares <em>motion</em> instead of <em>position</em>. For two successive returning fixes <em>z&#8342;&#8331;&#8321;</em> and <em>z&#8342;</em>, with filter estimates <em>x&#770;&#8342;&#8331;&#8321;</em> and the IMU-propagated prediction <em>x&#770;&#8342;&#8315;</em>:</p>
+<pre>d = &#8214; (z&#8342; &#8722; z&#8342;&#8331;&#8321;) &#8722; (x&#770;&#8342;&#8315; &#8722; x&#770;&#8342;&#8331;&#8321;) &#8214;
+consistent  &#8660;  d &#8804; 3 &#183; max( &#8730;(&#963;&#178;&#8342;&#8331;&#8321; + &#963;&#178;&#8342;), 0.25 m ),   with 0 &lt; t&#8342; &#8722; t&#8342;&#8331;&#8321; &#8804; stale limit</pre>
+<p>Why this works: dead-reckoning error over a 40-second outage is mostly an accumulated offset that changes slowly. Over the half second between two fixes, that offset is nearly constant, so it cancels when you subtract the two positions. What's left compares how far GPS says the robot moved against how far the IMU says it moved over the same short interval, which the IMU measures well even when its absolute position is meters off. The threshold is 3-&#963; of the difference of two independent fixes (variances add), with a 0.25 m floor so a too-confident receiver can't make the test impossible to pass.</p>
+<ul>
+<li>A consistent pair returns GPS to nominal weight at once.</li>
+<li>A mismatch holds a 5x variance multiplier and keeps checking.</li>
+<li>The first fix after the gap, which has nothing to pair with yet, gets the short ramp.</li>
+<li>Only applied fixes advance the pair. A rejected fix resets it, so one bad fix can't vouch for the next.</li>
+</ul>
+<p><strong>Measured effect</strong> (queue-matched, same seed) versus no ramp: overall RMSE &#8722;1.8%, outage-window RMSE &#8722;1.9%, final error &#8722;46%, at a cost of +5.2% return-window RMSE. In the queue-free end-to-end test it cut final error from 0.0418 m to 0.0263 m. The honest caveat, which is also in the repo: the mismatch branch still needs a controlled GPS-jump experiment before I'd call it robust.</p>
+</section>
+
+<section class="section">
+<h2>5. Knowing when to trust the estimate: the GPS-health monitor</h2>
+<p>A filter will happily report a position whether or not it has been corrected recently. Operators need to know which situation they are in, so I built a monitor that replays every GPS decision (accepted, rejected, invalid, outside the filter's history buffer) in arrival order and reconstructs a four-state machine. It observes the filter and never changes its tuning or state.</p>
+<div class="figure"><svg viewBox="0 0 760 265" role="img" aria-label="GPS health state machine" xmlns="http://www.w3.org/2000/svg" font-family="Inter,system-ui,sans-serif" font-size="13">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6d685c"/></marker></defs>
+<g fill="none" stroke="#6d685c" stroke-width="1.3">
+<rect x="20" y="105" width="140" height="50" rx="8"/>
+<rect x="240" y="40" width="180" height="54" rx="8"/>
+<rect x="540" y="105" width="190" height="54" rx="8" stroke="#3f7a5e" stroke-width="2" fill="#3f7a5e" fill-opacity="0.10"/>
+<rect x="240" y="190" width="180" height="54" rx="8"/>
+<path d="M160 118 L240 78" marker-end="url(#ar)"/>
+<path d="M420 70 L540 118" marker-end="url(#ar)"/>
+<path d="M635 159 C635 225 500 228 420 222" marker-end="url(#ar)"/>
+<path d="M330 190 L330 94" marker-end="url(#ar)"/>
+<path d="M300 40 C300 8 360 8 360 40" marker-end="url(#ar)"/>
+</g>
+<g fill="#282720" text-anchor="middle">
+<text x="90" y="134" font-weight="600">WAITING</text>
+<text x="330" y="63" font-weight="600">RECOVERING</text>
+<text x="330" y="81" font-size="11.5" fill="#6d685c">accepted streak &lt; 3</text>
+<text x="635" y="128" font-weight="600">GPS AIDED</text>
+<text x="635" y="146" font-size="11.5" fill="#6d685c">fresh correction</text>
+<text x="330" y="213" font-weight="600">DEAD RECKONING</text>
+<text x="330" y="231" font-size="11.5" fill="#6d685c">correction stale</text>
+</g>
+<g fill="#6d685c" font-size="11.5">
+<text x="20" y="88">1st fresh accepted fix</text>
+<text x="440" y="54">3rd fresh, strictly</text><text x="440" y="68">increasing accepted fix</text>
+<text x="380" y="18">rejected / invalid / outside history: streak resets to 0</text>
+<text x="322" y="146" text-anchor="end">fresh accepted fix</text>
+<text x="520" y="252">no fresh fix for 3 periods</text>
+</g>
+</svg></div>
+<ul>
+<li><strong>Stale</strong> means no fresh correction for three nominal GPS periods (1.5 s at 2 Hz).</li>
+<li><strong>Re-entering GPS AIDED</strong> requires three fresh accepted fixes with strictly increasing measurement times. A rejected, invalid, or outside-history fix resets the streak to zero, so a burst of bad or replayed packets can't fake recovery.</li>
+<li><strong>Two different ages.</strong> Receipt age is "how long since any packet arrived"; correction age is "how old is the newest measurement the filter accepted." A delayed or out-of-order packet updates the first but not the second, so late data never looks like fresh data.</li>
+<li><strong>Output:</strong> every fix decision with its normalized residual, health samples over time, and a notification with recommended operator action only on state changes, saved to <code>gps-health.json</code> and shown live in the Rerun dashboard.</li>
+</ul>
+<p>The unit test walks a 60-second run with a 40-second outage and a rejected first return fix, and asserts the exact sequence: dead reckoning at 49 s, still dead reckoning when the rejected fix arrives at 50 s (receipt age 0, correction age 41 s), recovering at 51&#8211;52 s, aided at 53 s, and exactly five notifications.</p>
+</section>
+
+<section class="section">
+<h2>How I kept it honest</h2>
+<ul>
+<li><strong>Regression baselines:</strong> every experiment's metrics live in a fixtures file. Tests fail if a change moves them, so improvements are always deliberate and reviewed.</li>
+<li><strong>Paired comparisons:</strong> policy comparisons use the same seeds, service times, and input streams, so differences come from the policy and not the noise.</li>
+<li><strong>Window metrics, not just totals:</strong> outage [10, 50) s, return [50, 53) s, and post-recovery [53, 60) s are scored separately, because aggregate RMSE hides exactly the moments that matter.</li>
+<li><strong>Tooling:</strong> <code>analyze-runs.py</code> exports saved-run metrics and deltas against a reference run to CSV, with its own tests.</li>
+<li><strong>Stated limits:</strong> recovery results are single-seed and simulated. My advisor's next request is to characterize real open-source sensor data, since simulated noise is cleaner than reality.</li>
+</ul>
+</section>
+
+<section class="section">
+<h2>What I'd do next</h2>
+<ul>
+<li>Multi-seed recovery sweeps with confidence intervals, plus outages of different lengths and motion profiles.</li>
+<li>Inject controlled GPS jumps and multipath to test the mismatch branch of the consistency check.</li>
+<li>Replace drop-and-compensate with true out-of-sequence measurement handling in the EKF (retrodiction from a state history buffer).</li>
+<li>Re-run the queue and recovery experiments on real GNSS/IMU logs, such as UrbanNav, to see how much of this survives real noise.</li>
+</ul>
+</section>
+
+</main><footer>Ishaan Chaturvedi · Fusion in Motion</footer></body></html>

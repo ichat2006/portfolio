@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrueTake — Ishaan Chaturvedi</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"><style>:root{--paper:#f5f2ea;--card:#faf8f2;--ink:#282720;--meta:#6d685c;--line:rgba(40,39,32,.13);--accent:#3f7a5e;--serif:'Fraunces',Georgia,serif;--sans:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.68}.wrap{max-width:880px;margin:0 auto;padding:0 26px}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}h1,h2{font-family:var(--serif);margin:0;line-height:1.15}header{border-bottom:1px solid var(--line);background:rgba(245,242,234,.94);position:sticky;top:0;z-index:5}.bar{max-width:880px;margin:auto;padding:15px 26px;display:flex;justify-content:space-between;gap:16px}.brand{font-family:var(--serif);font-weight:600}.back{font-size:.92rem;font-weight:500}main{padding:48px 0 80px}.eyebrow{color:var(--meta);font-size:.82rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600}.title{font-size:clamp(2.1rem,6vw,3.3rem);margin-top:7px}.lead{color:var(--meta);max-width:68ch;font-size:1.03rem;margin:13px 0 0}.links{display:flex;gap:18px;flex-wrap:wrap;margin:22px 0 30px}.section{padding:25px 0;border-top:1px solid var(--line)}.section h2{font-size:1.5rem;margin-bottom:12px}.section p{max-width:74ch;margin:0 0 13px}.section ul{max-width:74ch;margin:8px 0 13px;padding-left:22px}.section li{margin:6px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 22px;margin:8px 0 6px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em;background:rgba(63,122,94,.08);padding:1px 5px;border-radius:4px}
+pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.84rem;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:12px 16px;overflow-x:auto;white-space:pre;max-width:100%;margin:6px 0 14px;line-height:1.55}
+table{border-collapse:collapse;width:100%;margin:8px 0 14px;font-size:.88rem;background:var(--card)}th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}th{background:rgba(63,122,94,.08);font-weight:600}
+.figure{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0 16px}.figure svg{width:100%;height:auto;display:block}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:6px 0 4px}.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}.stat b{display:block;font-family:var(--serif);font-size:1.45rem;color:var(--accent)}.stat span{font-size:.8rem;color:var(--meta)}
+footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--meta);font-size:.82rem;text-align:center}</style></head>
+<body><header><div class="bar"><span class="brand">Ishaan Chaturvedi</span><a class="back" href="index.html">← Back to portfolio</a></div></header>
+<main class="wrap"><div class="eyebrow">Python · OpenCV · CLIP · MediaPipe · Claude API · Nov 2026</div><h1 class="title">TrueTake</h1><p class="lead">A pipeline that decides which recorded robot-training clips a lab should accept. Its core is recovering the clock offset between a phone's video and its gyroscope, which also proves the footage is genuine.</p>
+<div style="height:22px"></div>
+<div class="stats"><div class="stat"><b>18</b><span>axis and sign pairings searched, then locked per device</span></div><div class="stat"><b>±2 s</b><span>lag search for the video-to-sensor clock offset</span></div><div class="stat"><b>5 s / 1 s</b><span>sliding windows that localize splices</span></div><div class="stat"><b>3 layers</b><span>quality, verification, value; LLM only when unsure</span></div></div>
+
+<section class="section">
+<h2>The problem</h2>
+<p>Robotics labs pay people to record demonstrations, such as folding a shirt on video, as training data. Many clips turn out to be unusable: badly framed, idle, duplicated, or not genuine (a re-filmed screen, a borrowed sensor file, a spliced segment). TrueTake is a pipeline that decides which clips to accept and explains every decision with timestamped reasons and usable minutes per clip. It is built as a cheap-first cascade. Fast deterministic checks decide most clips, and a vision-language model (Claude) is called only for the cases those checks can't settle.</p>
+<div class="card"><ul>
+<li><strong>Layer 1, quality:</strong> resolution, frame rate, orientation, blur, idle time, and whether the task is in frame. Cheap CLIP checks run first; Claude judges only the uncertain middle and has to cite frames as evidence.</li>
+<li><strong>Layer 2, verification:</strong> does the video's motion match the phone's own gyroscope? (the main section below)</li>
+<li><strong>Layer 3, value:</strong> how much new behavior a clip adds compared with the clips already kept.</li>
+</ul></div>
+</section>
+
+<section class="section">
+<h2>Verification is a clock-synchronization problem</h2>
+<p>A phone records video and motion sensors at the same time, but into two different files, on two different clocks, at two different rates. If the footage is real and unedited, the way the picture rotates must match the way the phone rotated. Testing that means first answering a harder question: <strong>what is the time offset between the two files?</strong> Labs need that offset anyway to align video with sensor data, so one computation does double duty. It gives a match score (is it genuine?) and a clock offset (how to sync it).</p>
+<div class="figure"><svg viewBox="0 0 760 270" role="img" aria-label="Video and gyroscope clock alignment" xmlns="http://www.w3.org/2000/svg" font-family="Inter,system-ui,sans-serif" font-size="12.5">
+<defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6d685c"/></marker></defs>
+<text x="20" y="22" font-weight="600" fill="#282720" font-size="14">Two clocks, two rates, one unknown offset &#964;</text>
+<text x="20" y="62" fill="#282720" font-weight="600">Video frames</text>
+<text x="20" y="78" fill="#6d685c" font-size="11.5">~30 fps, container clock</text>
+<line x1="180" y1="65" x2="740" y2="65" stroke="#6d685c"/>
+<g stroke="#282720" stroke-width="2">
+<line x1="200" y1="55" x2="200" y2="75"/><line x1="300" y1="55" x2="300" y2="75"/><line x1="400" y1="55" x2="400" y2="75"/><line x1="500" y1="55" x2="500" y2="75"/><line x1="600" y1="55" x2="600" y2="75"/><line x1="700" y1="55" x2="700" y2="75"/>
+</g>
+<g fill="#3f7a5e"><circle cx="250" cy="65" r="5"/><circle cx="350" cy="65" r="5"/><circle cx="450" cy="65" r="5"/><circle cx="550" cy="65" r="5"/><circle cx="650" cy="65" r="5"/></g>
+
+<text x="20" y="152" fill="#282720" font-weight="600">Gyroscope</text>
+<text x="20" y="168" fill="#6d685c" font-size="11.5">higher rate, sensor clock</text>
+<line x1="180" y1="155" x2="740" y2="155" stroke="#6d685c"/>
+<g stroke="#6d685c" stroke-width="1.2">
+<line x1="190" y1="148" x2="190" y2="162"/><line x1="223" y1="148" x2="223" y2="162"/><line x1="256" y1="148" x2="256" y2="162"/><line x1="289" y1="148" x2="289" y2="162"/><line x1="322" y1="148" x2="322" y2="162"/><line x1="355" y1="148" x2="355" y2="162"/><line x1="388" y1="148" x2="388" y2="162"/><line x1="421" y1="148" x2="421" y2="162"/><line x1="454" y1="148" x2="454" y2="162"/><line x1="487" y1="148" x2="487" y2="162"/><line x1="520" y1="148" x2="520" y2="162"/><line x1="553" y1="148" x2="553" y2="162"/><line x1="586" y1="148" x2="586" y2="162"/><line x1="619" y1="148" x2="619" y2="162"/><line x1="652" y1="148" x2="652" y2="162"/><line x1="685" y1="148" x2="685" y2="162"/><line x1="718" y1="148" x2="718" y2="162"/>
+</g>
+<g stroke="#3f7a5e" stroke-dasharray="3 3"><line x1="250" y1="72" x2="250" y2="148"/><line x1="350" y1="72" x2="350" y2="148"/><line x1="450" y1="72" x2="450" y2="148"/><line x1="550" y1="72" x2="550" y2="148"/><line x1="650" y1="72" x2="650" y2="148"/></g>
+<circle cx="186" cy="184" r="4.5" fill="#3f7a5e"/><text x="198" y="188" fill="#3f7a5e" font-size="11.5">rate from frames k, k+1 sits at their midpoint; gyro is interpolated there (dashed)</text>
+<rect x="180" y="200" width="560" height="52" rx="8" fill="#3f7a5e" fill-opacity="0.08" stroke="#3f7a5e"/>
+<text x="460" y="222" text-anchor="middle" fill="#282720" font-weight="600">slide gyro by &#964; &#8712; [&#8722;2 s, +2 s], compute normalized cross-correlation r(&#964;)</text>
+<text x="460" y="240" text-anchor="middle" fill="#6d685c" font-size="11.5">peak height = is it real? &#183; peak location = clock offset &#183; all 3 axes must agree within 2 frames</text>
+</svg></div>
+</section>
+
+<section class="section">
+<h2>Step by step</h2>
+<p><strong>1. Camera rotation from pixels.</strong> For each pair of consecutive frames: grayscale, downscale to 320 px wide, pick about 200 corners (<code>goodFeaturesToTrack</code>), track them into the next frame with pyramidal Lucas&#8211;Kanade optical flow, and fit a rotation-plus-translation (partial affine) model with RANSAC so hands and moving cloth are rejected as outliers. That yields horizontal shift <em>dx</em>, vertical shift <em>dy</em>, and in-image rotation <em>d&#952;</em>. Dividing by the inter-frame time gives three rate signals: pan, tilt, and roll.</p>
+<p><strong>2. Put the gyro on the video's time grid, at the right instant.</strong> A finite difference between frames <em>k</em> and <em>k+1</em> estimates the rate at their <em>midpoint</em>, not at either frame. So each gyro axis is interpolated onto frame-pair midpoints. Sampling at frame times instead would bake in a systematic half-frame error (about 17 ms at 30 fps) that the cross-correlation would then report as part of the clock offset.</p>
+<p><strong>3. Clean both signals.</strong> A 0.2 s moving average suppresses tracking jitter, and subtracting each signal's mean removes constant terms such as gyro bias or a slow steady pan.</p>
+<p><strong>4. Figure out which axis is which.</strong> How gyro axes map to pan, tilt, and roll depends on how the phone was held. For each video signal, the pipeline tries all three gyro axes with both signs (18 candidate pairings) and keeps the best-correlating one. The mapping is learned once per device and orientation on a known-good clip and then locked, so an attacker can't benefit from the pipeline searching harder on a bad clip.</p>
+<p><strong>5. Cross-correlate over lag.</strong> For each matched pair, compute the normalized cross-correlation at every lag from &#8722;2 s to +2 s:</p>
+<pre>r(&#964;) = &#931;&#8348; (v&#8348; &#8722; v&#772;)(g&#8348;&#8330;&#964; &#8722; g&#772;)  /  ( &#8730;&#931;&#8348;(v&#8348; &#8722; v&#772;)&#178; &#183; &#8730;&#931;&#8348;(g&#8348;&#8330;&#964; &#8722; g&#772;)&#178; )</pre>
+<p>The peak height is the match score; the lag at the peak is the clock offset. Because Pearson correlation ignores scale, you never need the camera's focal length. For small rotations, image shift is about focal length &#215; angular rate &#215; &#916;t, so the video signal is a scaled copy of the gyro signal, and the unknown scale drops out.</p>
+<p><strong>6. Make the three axes vote.</strong> Pan, tilt, and roll must all peak at nearly the same lag (within 2 frames). One axis can produce a spurious peak by chance; three independent axes agreeing on the same offset is much harder to fake.</p>
+<p><strong>7. Look inside the clip.</strong> The same correlation runs on 5-second windows sliding by 1 second. A window where the match collapses inside an otherwise matching clip marks a splice or an inserted segment, and the report gives its timestamps.</p>
+<p><strong>8. Decide without false accusations.</strong> If the gyro barely moved (its spread is below a small threshold), the result is "not enough motion to verify," not a failure, because a still camera proves nothing either way. Otherwise a clip passes when its score clears a threshold set on training clips (the level that keeps 95% of genuine clips), and offsets over 1 second are flagged.</p>
+</section>
+
+<section class="section">
+<h2>What each attack looks like to the math</h2>
+<table>
+<tr><th>Attack</th><th>Signature</th></tr>
+<tr><td>Sensor file from a different clip</td><td>Low peak at every lag</td></tr>
+<tr><td>Sensor file with its clock shifted</td><td>Strong peak, but at the wrong offset</td></tr>
+<tr><td>Screen re-filmed from a tripod</td><td>Video shows motion, gyro is flat: no match</td></tr>
+<tr><td>Spliced or inserted segment</td><td>Match collapses in specific windows</td></tr>
+<tr><td>Stock or generated video with made-up sensor data</td><td>Low peak</td></tr>
+<tr><td>Screen re-filmed with a hand-held phone</td><td>Partial match because the phone really moved; a known gap I document rather than hide</td></tr>
+</table>
+<p>Practical limits I designed around: phone video stabilization removes the very shake being matched, so it must be off; close-up hands and cloth add motion that isn't camera rotation, so thresholds come from real tabletop clips; heavy motion blur loses tracked corners, so those frames count as inconclusive. Tracking 200 points at 320 px is light enough that a 30-second clip takes seconds on a laptop.</p>
+</section>
+
+<section class="section">
+<h2>Value: which clips actually teach a robot something new</h2>
+<p>Only clips that pass quality and verification are scored, so "unusual" can't just mean "broken." Each clip gets three views, each with its own distance:</p>
+<ul>
+<li><strong>Scene:</strong> CLIP ViT-B/32 embeddings of 8 frames, averaged; distance is 1 &#8722; cosine similarity.</li>
+<li><strong>Hand motion:</strong> MediaPipe wrist, thumb-tip, and index-tip tracks, normalized to frame size and resampled to 64 steps; distance is dynamic time warping.</li>
+<li><strong>Strategy:</strong> Claude labels the fold as a sequence from a fixed step list (smooth, sleeves-in, fold-half, fold-thirds, roll, drop, recover, and so on); distance is normalized edit distance.</li>
+</ul>
+<p>Each view's distances are divided by that view's median and averaged. Ranking is greedy farthest-point selection: start from the most typical clip, then repeatedly add the clip farthest from everything already chosen. A clip's value is its distance to the nearest chosen clip when it's added, and a clip whose nearest neighbor is too close is marked redundant, with its twin named in the report.</p>
+</section>
+
+<section class="section">
+<h2>Evaluation and how I built it</h2>
+<p>Every check was scored against hand labels on held-out clips plus synthetic attacks generated for each attack type above, reporting attacks caught, genuine clips wrongly flagged, and inconclusive clips, compared with a random baseline. Per-clip model calls and frames processed are logged so cost and failure modes can be traced. I used Claude Code as a coding agent, one module per prompt, and reviewed and tested every generated file on real clips before committing it. The two bugs it is easiest to get wrong, mixed timestamp units (ns, ms, s) and degrees versus radians, are checked by printing duration and gyro range on load and by plotting both signals together in Rerun before trusting any score.</p>
+</section>
+
+<section class="section">
+<h2>What I'd push further</h2>
+<ul>
+<li>Sub-frame clock offset by fitting a parabola through the correlation peak and its neighbors, instead of snapping to the nearest midpoint sample.</li>
+<li>Rolling-shutter correction: each image row is captured at a slightly different time, which skews rotation estimates during fast motion.</li>
+<li>Read gyro data embedded in action-camera files (GoPro and similar) so verification works beyond phones.</li>
+</ul>
+</section>
+
+</main><footer>Ishaan Chaturvedi · TrueTake</footer></body></html>
