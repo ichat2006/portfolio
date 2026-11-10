@@ -11,7 +11,7 @@ footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--meta);fo
 <body><header><div class="bar"><span class="brand">Ishaan Chaturvedi</span><a class="back" href="index.html">← Back to portfolio</a></div></header>
 <main class="wrap"><div class="eyebrow">Python · OpenCV · CLIP · MediaPipe · Claude API · Nov 2026</div><h1 class="title">TrueTake</h1><p class="lead">A pipeline that decides which recorded robot-training clips a lab should accept. Its core is recovering the clock offset between a phone's video and its gyroscope, which also proves the footage is genuine.</p>
 <div style="height:22px"></div>
-<div class="stats"><div class="stat"><b>18</b><span>axis and sign pairings searched, then locked per device</span></div><div class="stat"><b>±2 s</b><span>lag search for the video-to-sensor clock offset</span></div><div class="stat"><b>5 s / 1 s</b><span>sliding windows that localize splices</span></div><div class="stat"><b>3 layers</b><span>quality, verification, value; LLM only when unsure</span></div></div>
+<div class="stats"><div class="stat"><b>~70%</b><span>of clips settled automatically overnight, on average</span></div><div class="stat"><b>18</b><span>axis and sign pairings searched, then locked per device</span></div><div class="stat"><b>±2 s</b><span>lag search for the video-to-sensor clock offset</span></div><div class="stat"><b>5 s / 1 s</b><span>sliding windows that localize splices</span></div></div>
 
 <section class="section">
 <h2>The problem</h2>
@@ -92,6 +92,7 @@ footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--meta);fo
 
 <section class="section">
 <h2>Evaluation and how I built it</h2>
+<p><strong>Impact.</strong> We ran TrueTake unattended overnight on each day's recordings. Across our runs it settled roughly 70% of clips on its own on average (accepted or rejected, each with timestamped reasons), so people only had to review the remaining ~30%, could do that review outside the lab, and started each day with already-screened data to test on.</p>
 <p>Every check was scored against hand labels on held-out clips plus synthetic attacks generated for each attack type above, reporting attacks caught, genuine clips wrongly flagged, and inconclusive clips, compared with a random baseline. Per-clip model calls and frames processed are logged so cost and failure modes can be traced. I used Claude Code as a coding agent, one module per prompt, and reviewed and tested every generated file on real clips before committing it. The two bugs it is easiest to get wrong, mixed timestamp units (ns, ms, s) and degrees versus radians, are checked by printing duration and gyro range on load and by plotting both signals together in Rerun before trusting any score.</p>
 </section>
 
